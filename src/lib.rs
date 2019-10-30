@@ -12,6 +12,28 @@ mod tests {
     }
 }
 
+pub fn global_dist(target: &[u8], query: &[u8]) -> u32 {
+    unsafe {
+        let config = edlibNewAlignConfig(
+            -1,
+            EdlibAlignMode_EDLIB_MODE_NW,
+            EdlibAlignTask_EDLIB_TASK_DISTANCE,
+            std::ptr::null_mut(),
+            0,
+        );
+        let align = edlibAlign(
+            query.as_ptr() as *const i8,
+            query.len() as i32,
+            target.as_ptr() as *const i8,
+            target.len() as i32,
+            config,
+        );
+        let result = align.editDistance as u32;
+        edlibFreeAlignResult(align);
+        result
+    }
+}
+
 /// Calculate the global alignment for given query and reference.
 /// 0 for match, 1 for insertion to target, 2 for insertion to query, and 3 for mismatch.
 pub fn global(target: &[u8], query: &[u8]) -> Vec<u8> {
@@ -30,7 +52,8 @@ pub fn global(target: &[u8], query: &[u8]) -> Vec<u8> {
             target.len() as i32,
             config,
         );
-        let result = std::slice::from_raw_parts(align.alignment, align.alignmentLength as usize).to_vec();
+        let result =
+            std::slice::from_raw_parts(align.alignment, align.alignmentLength as usize).to_vec();
         edlibFreeAlignResult(align);
         result
     }
