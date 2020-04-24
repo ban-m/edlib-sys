@@ -13,9 +13,13 @@ mod tests {
 }
 
 pub fn global_dist(target: &[u8], query: &[u8]) -> u32 {
+    global_dist_k(target, query, -1)
+}
+
+pub fn global_dist_k(target: &[u8], query: &[u8], k: i32) -> u32 {
     unsafe {
         let config = edlibNewAlignConfig(
-            -1,
+            k,
             EdlibAlignMode_EDLIB_MODE_NW,
             EdlibAlignTask_EDLIB_TASK_DISTANCE,
             std::ptr::null_mut(),
