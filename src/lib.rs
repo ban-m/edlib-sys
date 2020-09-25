@@ -63,6 +63,29 @@ pub fn global(target: &[u8], query: &[u8]) -> Vec<u8> {
     }
 }
 
+pub fn local(target: &[u8], query: &[u8]) -> Vec<u8> {
+    unsafe {
+        let config = edlibNewAlignConfig(
+            -1,
+            EdlibAlignMode_EDLIB_MODE_HW,
+            EdlibAlignTask_EDLIB_TASK_PATH,
+            std::ptr::null_mut(),
+            0,
+        );
+        let align = edlibAlign(
+            query.as_ptr() as *const i8,
+            query.len() as i32,
+            target.as_ptr() as *const i8,
+            target.len() as i32,
+            config,
+        );
+        let result =
+            std::slice::from_raw_parts(align.alignment, align.alignmentLength as usize).to_vec();
+        edlibFreeAlignResult(align);
+        result
+    }
+}
+
 pub fn align(query: &[u8], refr: &[u8]) -> String {
     unsafe {
         let config = edlibNewAlignConfig(
