@@ -72,7 +72,7 @@ pub fn edlib_align(query: &[u8], target: &[u8], mode: AlignMode, task: AlignTask
             let locations: Option<Vec<(usize, usize)>> = (task != AlignTask::Distance).then(|| {
                 let length = align.numLocations as usize;
                 let starts = std::slice::from_raw_parts(align.startLocations, length).to_vec();
-                let ends = std::slice::from_raw_parts(align.startLocations, length).to_vec();
+                let ends = std::slice::from_raw_parts(align.endLocations, length).to_vec();
                 starts
                     .iter()
                     .zip(ends)
