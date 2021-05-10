@@ -26,6 +26,8 @@ pub struct Alignment {
     /// Pair of optimal alignments.
     pub locations: Option<Vec<(usize, usize)>>,
     /// Alignment operations.0=>Match, 1=> Ins, 2=>Del 3=> Mism
+    /// Note that leading/trailing sequence in the query sequence
+    /// would not apprear in this operation. Use .locations to obtain the full alignment.
     pub operations: Option<Vec<u8>>,
 }
 
@@ -43,7 +45,7 @@ pub enum AlignTask {
     Alignment,
 }
 
-pub fn edlib_align(target: &[u8], query: &[u8], mode: AlignMode, task: AlignTask) -> Alignment {
+pub fn edlib_align(query: &[u8], target: &[u8], mode: AlignMode, task: AlignTask) -> Alignment {
     let mode_ed = match mode {
         AlignMode::Global => EdlibAlignMode_EDLIB_MODE_NW,
         AlignMode::Prefix => EdlibAlignMode_EDLIB_MODE_SHW,
