@@ -1,12 +1,16 @@
 [package]
 name = "edlib_sys"
 version = "0.2.0"
-authors = ["ban-m <ban-m@g.ecc.u-tokyo.ac.jp>"]
+authors = ["ban-m <banmasutani@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+description = "A wrapper of edlib for edit distance / Levenshtein distance computation"
+repository = "https://github.com/ban-m/edlib-sys"
+keywords = ["bioinformatics", "sequence-alignment"]
+categories = ["bioinformatics"]
 
 [dependencies]
 libc = "0.2"
+
 [build-dependencies]
 cc = { version = "1.0", features = ["parallel"] }

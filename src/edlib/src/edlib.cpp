@@ -157,6 +157,27 @@ extern "C" EdlibAlignResult edlibAlign(const char* const queryOriginal, const in
     result.alphabetLength = static_cast<int>(alphabet.size());
     /*-------------------------------------------------------*/
 
+    // Handle special situation when at least one of the sequences has length 0.
+    if (queryLength == 0 || targetLength == 0) {
+        if (config.mode == EDLIB_MODE_NW) {
+            result.editDistance = std::max(queryLength, targetLength);
+            result.endLocations = static_cast<int *>(malloc(sizeof(int) * 1));
+            result.endLocations[0] = targetLength - 1;
+            result.numLocations = 1;
+        } else if (config.mode == EDLIB_MODE_SHW || config.mode == EDLIB_MODE_HW) {
+            result.editDistance = queryLength;
+            result.endLocations = static_cast<int *>(malloc(sizeof(int) * 1));
+            result.endLocations[0] = -1;
+            result.numLocations = 1;
+        } else {
+            result.status = EDLIB_STATUS_ERROR;
+        }
+
+        free(query);
+        free(target);
+        return result;
+    }
+
     /*--------------------- INITIALIZATION ------------------*/
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE); // bmax in Myers
     int W = maxNumBlocks * WORD_SIZE - queryLength; // number of redundant cells in last level blocks
@@ -340,7 +361,7 @@ static inline Word* buildPeq(const int alphabetLength,
     Word* Peq = new Word[(alphabetLength + 1) * maxNumBlocks];
 
     // Build Peq (1 is match, 0 is mismatch). NOTE: last column is wildcard(symbol that matches anything) with just 1s
-    for (unsigned char symbol = 0; symbol <= alphabetLength; symbol++) {
+    for (int symbol = 0; symbol <= alphabetLength; symbol++) {
         for (int b = 0; b < maxNumBlocks; b++) {
             if (symbol < alphabetLength) {
                 Peq[symbol * maxNumBlocks + b] = 0;
@@ -868,10 +889,10 @@ static int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int
                 (*alignData)->Ps[maxNumBlocks * c + b] = bl->P;
                 (*alignData)->Ms[maxNumBlocks * c + b] = bl->M;
                 (*alignData)->scores[maxNumBlocks * c + b] = bl->score;
-                (*alignData)->firstBlocks[c] = firstBlock;
-                (*alignData)->lastBlocks[c] = lastBlock;
                 bl++;
             }
+            (*alignData)->firstBlocks[c] = firstBlock;
+            (*alignData)->lastBlocks[c] = lastBlock;
         }
         //----------------------------------------------------------//
         //---- If this is stop column, save it and finish ----//
@@ -880,9 +901,9 @@ static int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int
                 (*alignData)->Ps[b] = (blocks + b)->P;
                 (*alignData)->Ms[b] = (blocks + b)->M;
                 (*alignData)->scores[b] = (blocks + b)->score;
-                (*alignData)->firstBlocks[0] = firstBlock;
-                (*alignData)->lastBlocks[0] = lastBlock;
             }
+            (*alignData)->firstBlocks[0] = firstBlock;
+            (*alignData)->lastBlocks[0] = lastBlock;
             *bestScore_ = -1;
             *position_ = targetStopPosition;
             delete[] blocks;
@@ -1439,7 +1460,7 @@ static string transformSequences(const char* const queryOriginal, const int quer
 
 
 extern "C" EdlibAlignConfig edlibNewAlignConfig(int k, EdlibAlignMode mode, EdlibAlignTask task,
-                                                EdlibEqualityPair* additionalEqualities,
+                                                const EdlibEqualityPair* additionalEqualities,
                                                 int additionalEqualitiesLength) {
     EdlibAlignConfig config;
     config.k = k;
